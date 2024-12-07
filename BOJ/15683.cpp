@@ -8,14 +8,27 @@ typedef pair<int,int> pii;
 int dx[] = {0, 1, 0, -1};
 int dy[] = {1, 0, -1, 0};
 
-int n, m, ans = 64;
+int n, m, ans, ncam;
 int map[8][8];
 vector<pair<pair<int,int>,int>> cam;
+vector<pair<int,int>> cam5;
+
+int cntArea() {
+    int rt = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (map[i][j] == 0) rt++;
+        }
+    }
+
+    return rt;
+}
 
 // check if (x,y) is in range of map
 bool inRange(int x, int y) {
-    if (x < 0 || x >= n || y < 0 || y >= m) 
+    if (x < 0 || x >= n || y < 0 || y >= m) {
         return false;
+    }
     return true;
 }
 
@@ -25,18 +38,18 @@ void change(int x, int y, int dir, bool fill) {
     int ny = y + dy[dir];
     while(inRange(nx, ny)) {
         int type = map[nx][ny];
+        // There's a wall!!!
+        if (type == 6) {
+            return;
+        }
         // It's empty
-        if (type <= 0) {
+        else if (type <= 0) {
             if (fill) {
                 map[nx][ny]--;
             }
             else {
                 map[nx][ny]++;
             }
-        }
-        // There's a wall!!!
-        else if (type == 6) {
-            return;
         }
         nx += dx[dir];
         ny += dy[dir];
@@ -71,7 +84,10 @@ void five(int x, int y) {
     }
 }
 
-void control(int type, int x, int y, int dir, bool fill) {
+void control(pair<pair<int,int>,int> c, int dir, bool fill) {
+    int type = c.second;
+    int x = c.first.first;
+    int y = c.first.second;
     if (type == 1) {
         one(x, y, dir, fill);
         return;
@@ -87,6 +103,18 @@ void control(int type, int x, int y, int dir, bool fill) {
     four(x, y, dir, fill);
 }
 
+void dfs(int idx) {
+    if (idx == ncam) {
+        ans = min(cntArea(), ans);
+        return;
+    }
+    for (int i = 0; i < 4; i++) {
+        control(cam[idx], i, true);
+        dfs(idx + 1);
+        control(cam[idx], i, false);
+    }
+}
+
 void solve() {
     cin >> n >> m;
     for (int i = 0; i < n; i++) {
@@ -95,16 +123,22 @@ void solve() {
             cin >> tmp;
             map[i][j] = tmp;
             if (tmp == 5) {
-                five(i, j);
+                cam5.push_back({i, j});
             }
             else if (tmp >= 1 && tmp <= 4) {
-                cam.push_back({{i, j}, 0});
+                cam.push_back({{i, j}, tmp});
+                ncam++;
             }
         }
     }
 
-    // backtracking code
+    for (int i = 0; i < cam5.size(); i++) {
+        five(cam5[i].first, cam5[i].second);
+    }
+    ans = cntArea();
+    dfs(0);
 
+    cout << ans << '\n';
 }
 
 int main() {
