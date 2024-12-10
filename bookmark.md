@@ -1,5 +1,3 @@
-## Memo for PS
-
 ### To Study
 - Knuth's Algorithm X (boj.19998)
 - Dijkstra
